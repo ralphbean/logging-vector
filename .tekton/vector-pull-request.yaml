@@ -766,7 +766,7 @@ spec:
               - "false"
       - name: sast-snyk-check
         runAfter:
-          - clone-repository
+          - build-container
         when:
           - input: $(params.skip-checks)
             operator: in
@@ -775,6 +775,11 @@ spec:
         workspaces:
           - name: workspace
             workspace: workspace
+        params:
+        - name: image-digest
+          value: $(tasks.build-container.results.IMAGE_DIGEST)
+        - name: image-url
+          value: $(tasks.build-container.results.IMAGE_URL)
         taskSpec:
           description: Scans source code for security vulnerabilities, including common issues such as SQL injection, cross-site scripting (XSS), and code injection attacks using Snyk Code, a Static Application Security Testing (SAST) tool.
           params:
