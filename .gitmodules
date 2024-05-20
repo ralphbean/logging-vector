@@ -1,0 +1,4 @@
+[submodule "vector"]
+	path = vector
+	url = https://github.com/ViaQ/vector
+	branch = release-5.9
