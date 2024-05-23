@@ -744,6 +744,39 @@ spec:
             operator: in
             values:
               - "false"
+      - name: sast-shellcheck
+        runAfter:
+          - clone-repository
+        when:
+          - input: $(params.skip-checks)
+            operator: in
+            values:
+              - "false"
+        workspaces:
+          - name: workspace
+            workspace: workspace
+        taskSpec:
+          description: Scans source code for security vulnerabilities using ShellCheck, a Static Application Security Testing (SAST) tool.
+          results:
+            - description: Tekton task test output.
+              name: TEST_OUTPUT
+          steps:
+            - image: quay.io/fedora/fedora:40
+              name: sast-shellcheck
+              script: |
+                #!/usr/bin/env bash
+                set -exuo pipefail
+
+                dnf install -y csdiff shellcheck
+
+                cd $(workspaces.workspace.path)/source
+
+                .ci/run-shellcheck.sh * > shellcheck-results.json
+                csgrep --mode=evtstat shellcheck-results.json
+                csgrep --mode=sarif shellcheck-results.json > $(workspaces.workspace.path)/hacbs/$(context.task.name)/shellcheck-results.sarif
+              workingDir: $(workspaces.workspace.path)/hacbs/$(context.task.name)
+          workspaces:
+            - name: workspace
       - name: sast-snyk-check
         runAfter:
           - build-container
