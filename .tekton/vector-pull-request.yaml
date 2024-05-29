@@ -791,7 +791,9 @@ spec:
 
                 cd $(workspaces.workspace.path)/source
 
-                .ci/run-shellcheck.sh * | csgrep --event 'error|warning'
+                .ci/run-shellcheck.sh * > shellcheck-results.json
+                csgrep --mode=evtstat shellcheck-results.json
+                csgrep --mode=sarif shellcheck-results.json > shellcheck-results.sarif
               workingDir: $(workspaces.workspace.path)/hacbs/$(context.task.name)
           workspaces:
             - name: workspace

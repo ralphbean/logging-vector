@@ -10,6 +10,14 @@ export SC_JOBS=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)
 # how long we wait (wall-clock time) for a single shellcheck process to finish
 export SC_TIMEOUT=30
 
+# options passed to csgrep while post-processing the results
+CSGREP_OPTS=(
+    --mode=json
+    --event='error|warning'
+    --remove-duplicates
+    --embed-context=3
+)
+
 # create a temporary directory for shellcheck results
 export sc_int_dir=$(mktemp -d /tmp/tmp-run-sc.XXXXXXXXXX)
 trap "rm -rf '$sc_int_dir'" EXIT
@@ -57,5 +65,5 @@ find "$@" -type f -print0 \
     | xargs -rn ${SC_BATCH} --max-procs=${SC_JOBS} \
     /bin/bash -c "$SC_WRAP_SCRIPT" "$0"
 
-# merge all results, remove duplicates and embed source code context
-csgrep --mode=json --remove-duplicates --embed-context=3 "${sc_int_dir}"/*.json
+# process all results as configured with CSGREP_OPTS
+csgrep "${CSGREP_OPTS[@]}" "${sc_int_dir}"/*.json
