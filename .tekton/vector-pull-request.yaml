@@ -781,7 +781,7 @@ spec:
             - default: snyk-secret
               description: Name of secret which contains Snyk token.
               name: SNYK_SECRET
-            - default: --all-projects --exclude=test*,vendor,deps
+            - default: --report --project-name=konflux-test
               description: Append arguments.
               name: ARGS
               type: string
