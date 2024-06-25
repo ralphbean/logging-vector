@@ -6,7 +6,7 @@ FROM ghcr.io/datadog/lading@sha256:15d003762f0015e99f2a9772fd8d7ac31165e4af2f645
 #
 # VECTOR BUILDER
 #
-FROM ghcr.io/vectordotdev/vector/soak-builder@sha256:c51a7091de2caebaa690e17f37dbfed4d4059dcdf5114a5596e8ca9b5ef494f3 as builder
+FROM ghcr.io/vectordotdev/vector/soak-builder@sha256:b598dc1eeb8661e4928238093a979597fd98f80554e5276d8c17cf4781ea3b82 as builder
 WORKDIR /vector
 COPY . .
 RUN bash scripts/environment/install-protoc.sh
