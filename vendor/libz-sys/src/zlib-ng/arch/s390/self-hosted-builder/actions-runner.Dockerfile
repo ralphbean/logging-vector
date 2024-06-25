@@ -1,7 +1,7 @@
 # Self-Hosted IBM Z Github Actions Runner.
 
 # Temporary image: amd64 dependencies.
-FROM amd64/ubuntu:20.04 as ld-prefix
+FROM amd64/ubuntu:24.04 as ld-prefix
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get -y install ca-certificates libicu66 libssl1.1
 
