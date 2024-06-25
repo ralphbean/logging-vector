@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get -y install ca-certificates libicu66 libssl1.1
 
 # Main image.
-FROM s390x/ubuntu:20.04
+FROM s390x/ubuntu:24.04
 
 # Packages for zlib-ng testing.
 ENV DEBIAN_FRONTEND=noninteractive
