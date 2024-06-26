@@ -805,8 +805,7 @@ spec:
 
                 .ci/run-shellcheck.sh * > shellcheck-results.json
                 csgrep --mode=evtstat shellcheck-results.json
-                csgrep --mode=sarif shellcheck-results.json > shellcheck-results.sarif
-              workingDir: $(workspaces.workspace.path)/hacbs/$(context.task.name)
+                csgrep --mode=sarif shellcheck-results.json > $(workspaces.workspace.path)/hacbs/$(context.task.name)/shellcheck-results.sarif
             - name: upload
               image: quay.io/konflux-ci/oras:latest@sha256:04cbd5efbcf1a38944b050e3adbc3071218643f6aa92e95d5d25b173574bca5e
               workingDir: $(workspaces.workspace.path)/hacbs/$(context.task.name)
@@ -825,6 +824,9 @@ spec:
                   echo 'No image-url or image-digest param provided. Skipping upload.'
                   exit 0;
                 fi
+
+                realpath "${UPLOAD_FILE}"
+                ls -l "${UPLOAD_FILE}"
             
                 if [ ! -f "${UPLOAD_FILE}" ]; then
                   echo "No ${UPLOAD_FILE} exists. Skipping upload."
