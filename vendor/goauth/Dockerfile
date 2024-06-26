@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:noble
 MAINTAINER Drazen Urch <github@drazenur.ch>
 
 ARG RUST_VER=nightly
