@@ -391,6 +391,9 @@ spec:
                   touch /var/lib/containers/java
                 fi
 
+                # install csutils
+                dnf install -y cs{diff,gcca,wrap}
+
                 # Fixing group permission on /var/lib/containers
                 chown root:root /var/lib/containers
 
@@ -468,6 +471,9 @@ spec:
                   VOLUME_MOUNTS="${VOLUME_MOUNTS} --volume /tmp/entitlement:/etc/pki/entitlement"
                   echo "Adding the entitlement to the build"
                 fi
+
+                # XXX: just to check that we can instrument Dockerfile
+                cstrans-df-run --in-place "$dockerfile_path" echo
 
                 unshare -Uf $UNSHARE_ARGS --keep-caps -r --map-users 1,1,65536 --map-groups 1,1,65536 -w ${SOURCE_CODE_DIR}/$CONTEXT -- buildah build \
                   $VOLUME_MOUNTS \
