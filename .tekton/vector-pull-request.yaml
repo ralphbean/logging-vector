@@ -688,6 +688,34 @@ spec:
               image: quay.io/redhat-appstudio/cosign:v2.1.1@sha256:c883d6f8d39148f2cea71bff4622d196d89df3e510f36c140c097b932f0dd5d5
               name: upload-sbom
               workingDir: $(workspaces.source.path)
+            - name: upload-gcc-results
+              image: quay.io/konflux-ci/oras:latest@sha256:04cbd5efbcf1a38944b050e3adbc3071218643f6aa92e95d5d25b173574bca5e
+              workingDir: $(workspaces.source.path)
+              script: |
+                #!/usr/bin/env bash
+
+                IMAGE_URL=$(cat $(results.IMAGE_URL.path))
+                UPLOAD_FILE=gcc.sarif
+                MEDIA_TYPE=application/sarif+json
+
+                if [ -z "${IMAGE_URL}" ]; then
+                  echo 'No image-url provided. Skipping upload.'
+                  exit 0;
+                else
+                  echo "IMAGE_URL=${IMAGE_URL}"
+                fi
+            
+                if [ ! -f "${UPLOAD_FILE}" ]; then
+                  echo "No ${UPLOAD_FILE} exists. Skipping upload."
+                  exit 0;
+                fi
+
+                echo "Selecting auth"
+                select-oci-auth $IMAGE_URL > $HOME/auth.json
+                echo "Attaching to ${IMAGE_URL} via the OCI 1.1 Referrers API"
+                oras attach --no-tty --registry-config "$HOME/auth.json" --distribution-spec v1.1-referrers-api --artifact-type "${MEDIA_TYPE}" "${IMAGE_URL}" "${UPLOAD_FILE}:${MEDIA_TYPE}"
+                echo "Attaching to ${IMAGE_URL} via the OCI 1.1 Referrers Tag"
+                oras attach --no-tty --registry-config "$HOME/auth.json" --distribution-spec v1.1-referrers-tag --artifact-type "${MEDIA_TYPE}" "${IMAGE_URL}" "${UPLOAD_FILE}:${MEDIA_TYPE}"
           volumes:
             - emptyDir: {}
               name: varlibcontainers
