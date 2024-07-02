@@ -472,8 +472,14 @@ spec:
                   echo "Adding the entitlement to the build"
                 fi
 
-                # XXX: just to check that we can instrument Dockerfile
-                cstrans-df-run --in-place "$dockerfile_path" echo
+                # hook GCC Analyzer on the system compiler and capture its output
+                cap_file=$(mktemp)
+                printf '#!/bin/bash -x\nexec env "PATH=/usr/lib64/csgcca:/usr/lib64/cswrap:$PATH" "CSWRAP_CAP_FILE=%s" CSWRAP_TIMEOUT=10 CSWRAP_TIMEOUT_FOR=gcc "$@"\n' "$cap_file" | tee /usr/bin/cmd-wrap.sh
+                chmod 0755 /usr/bin/cmd-wrap.sh
+                for i in /usr/bin/cmd-wrap.sh /usr/{bin,lib64}/cs{gcca,wrap} ${cap_file}; do
+                  VOLUME_MOUNTS="${VOLUME_MOUNTS} --volume ${i}:${i}"
+                done
+                cstrans-df-run --in-place "$dockerfile_path" --verbose /usr/bin/cmd-wrap.sh
 
                 unshare -Uf $UNSHARE_ARGS --keep-caps -r --map-users 1,1,65536 --map-groups 1,1,65536 -w ${SOURCE_CODE_DIR}/$CONTEXT -- buildah build \
                   $VOLUME_MOUNTS \
@@ -482,6 +488,23 @@ spec:
                   --tls-verify=$TLSVERIFY --no-cache \
                   --ulimit nofile=4096:4096 \
                   -f "$dockerfile_path" -t $IMAGE .
+
+                (
+                  set -x +e
+
+                  # convert GCC's plain-text output to JSON
+                  # TODO: make GCC produce JSON output for each process separately
+                  csgrep --mode=json --event=warning --quiet ${cap_file} > gcc.json
+
+                  # print key events to CI log
+                  csgrep --prune=0 gcc.json
+
+                  # print SAST scanning summary
+                  csgrep --mode=evtstat gcc.json
+
+                  # convert the SAST scanning results to SARIF
+                  csgrep --mode=sarif gcc.json > gcc.sarif
+                )
 
                 container=$(buildah from --pull-never $IMAGE)
                 buildah mount $container | tee /workspace/container_path
