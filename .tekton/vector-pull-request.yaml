@@ -809,7 +809,7 @@ spec:
                   value: $(params.SNYK_SECRET)
                 - name: ARGS
                   value: $(params.ARGS)
-              image: quay.io/redhat-appstudio/konflux-test:v1.4.3@sha256:75d3e0ada1d07511e6b9342398929fe2690367b33142bf99ecad7dc3bccc3847
+              image: quay.io/redhat-appstudio/konflux-test:v1.4.4@sha256:f3edb13ef6d7d251b1f88c0b564f9d1828eb2f12b986b92c471097bfdb5e8b3d
               name: sast-snyk-check
               script: |
                 #!/usr/bin/env bash
