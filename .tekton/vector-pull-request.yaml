@@ -565,7 +565,7 @@ spec:
               securityContext:
                 runAsUser: 0
               workingDir: $(workspaces.source.path)
-            - image: quay.io/redhat-appstudio/cachi2:0.9.0@sha256:c5b62c585438a2396018cc8b410694c73e7e9e6c706f64110dd293d6b06b021d
+            - image: quay.io/redhat-appstudio/cachi2:0.9.1@sha256:df67f9e063b544a8c49a271359377fed560562615e0278f6d0b9a3485f3f8fad
               name: merge-cachi2-sbom
               script: |
                 if [ -d "$(workspaces.source.path)/cachi2" ]; then
