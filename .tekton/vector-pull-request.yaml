@@ -775,15 +775,14 @@ spec:
           steps:
             - image: quay.io/fedora/fedora:40
               name: sast-shellcheck
+              workingDir: $(workspaces.workspace.path)
               script: |
                 #!/usr/bin/env bash
                 set -exuo pipefail
 
                 dnf install -y csdiff shellcheck
 
-                cd $(workspaces.workspace.path)/source
-
-                .ci/run-shellcheck.sh * > shellcheck-results.json
+                ./source/.ci/run-shellcheck.sh * > shellcheck-results.json
                 csgrep --mode=evtstat shellcheck-results.json
                 csgrep --mode=sarif shellcheck-results.json > $(workspaces.workspace.path)/hacbs/$(context.task.name)/shellcheck-results.sarif
             - name: upload
