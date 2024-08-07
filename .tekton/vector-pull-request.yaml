@@ -391,6 +391,9 @@ spec:
                   touch /var/lib/containers/java
                 fi
 
+                # install csutils
+                dnf install -y cs{diff,gcca,wrap}
+
                 # Fixing group permission on /var/lib/containers
                 chown root:root /var/lib/containers
 
@@ -469,6 +472,15 @@ spec:
                   echo "Adding the entitlement to the build"
                 fi
 
+                # hook GCC Analyzer on the system compiler and capture its output
+                cap_file=$(mktemp)
+                printf '#!/bin/bash -x\nexec env "PATH=/usr/lib64/csgcca:/usr/lib64/cswrap:$PATH" "CSWRAP_CAP_FILE=%s" CSWRAP_TIMEOUT=10 CSWRAP_TIMEOUT_FOR=gcc "$@"\n' "$cap_file" | tee /usr/bin/cmd-wrap.sh
+                chmod 0755 /usr/bin/cmd-wrap.sh
+                for i in /usr/bin/cmd-wrap.sh /usr/{bin,lib64}/cs{gcca,wrap} ${cap_file}; do
+                  VOLUME_MOUNTS="${VOLUME_MOUNTS} --volume ${i}:${i}"
+                done
+                cstrans-df-run --in-place "$dockerfile_path" --verbose /usr/bin/cmd-wrap.sh
+
                 unshare -Uf $UNSHARE_ARGS --keep-caps -r --map-users 1,1,65536 --map-groups 1,1,65536 -w ${SOURCE_CODE_DIR}/$CONTEXT -- buildah build \
                   $VOLUME_MOUNTS \
                   "${BUILDAH_ARGS[@]}" \
@@ -476,6 +488,23 @@ spec:
                   --tls-verify=$TLSVERIFY --no-cache \
                   --ulimit nofile=4096:4096 \
                   -f "$dockerfile_path" -t $IMAGE .
+
+                (
+                  set -x +e
+
+                  # convert GCC's plain-text output to JSON
+                  # TODO: make GCC produce JSON output for each process separately
+                  csgrep --mode=json --event=warning --quiet ${cap_file} > gcc.json
+
+                  # print key events to CI log
+                  csgrep --prune=0 gcc.json
+
+                  # print SAST scanning summary
+                  csgrep --mode=evtstat gcc.json
+
+                  # convert the SAST scanning results to SARIF
+                  csgrep --mode=sarif gcc.json > gcc.sarif
+                )
 
                 container=$(buildah from --pull-never $IMAGE)
                 buildah mount $container | tee /workspace/container_path
@@ -659,6 +688,34 @@ spec:
               image: quay.io/redhat-appstudio/cosign:v2.1.1@sha256:c883d6f8d39148f2cea71bff4622d196d89df3e510f36c140c097b932f0dd5d5
               name: upload-sbom
               workingDir: $(workspaces.source.path)
+            - name: upload-gcc-results
+              image: quay.io/konflux-ci/oras:latest@sha256:04cbd5efbcf1a38944b050e3adbc3071218643f6aa92e95d5d25b173574bca5e
+              workingDir: $(workspaces.source.path)
+              script: |
+                #!/usr/bin/env bash
+
+                IMAGE_URL=$(cat $(results.IMAGE_URL.path))
+                UPLOAD_FILE=gcc.sarif
+                MEDIA_TYPE=application/sarif+json
+
+                if [ -z "${IMAGE_URL}" ]; then
+                  echo 'No image-url provided. Skipping upload.'
+                  exit 0;
+                else
+                  echo "IMAGE_URL=${IMAGE_URL}"
+                fi
+            
+                if [ ! -f "${UPLOAD_FILE}" ]; then
+                  echo "No ${UPLOAD_FILE} exists. Skipping upload."
+                  exit 0;
+                fi
+
+                echo "Selecting auth"
+                select-oci-auth $IMAGE_URL > $HOME/auth.json
+                echo "Attaching to ${IMAGE_URL} via the OCI 1.1 Referrers API"
+                oras attach --no-tty --registry-config "$HOME/auth.json" --distribution-spec v1.1-referrers-api --artifact-type "${MEDIA_TYPE}" "${IMAGE_URL}" "${UPLOAD_FILE}:${MEDIA_TYPE}"
+                echo "Attaching to ${IMAGE_URL} via the OCI 1.1 Referrers Tag"
+                oras attach --no-tty --registry-config "$HOME/auth.json" --distribution-spec v1.1-referrers-tag --artifact-type "${MEDIA_TYPE}" "${IMAGE_URL}" "${UPLOAD_FILE}:${MEDIA_TYPE}"
           volumes:
             - emptyDir: {}
               name: varlibcontainers
