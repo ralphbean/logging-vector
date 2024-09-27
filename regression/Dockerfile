@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 #
 # TARGET
 #
-FROM docker.io/debian:bookworm-slim@sha256:70d4c04302bdcd71c4fa21b6c12e99888380a07f04e3d44452b961bca046489d
+FROM docker.io/debian:bookworm-slim@sha256:7095ea629c4563714b9655137db2eacd456eb3eea0eb8a2b0a4a6b0b187220a9
 RUN apt-get update && apt-get dist-upgrade -y && apt-get -y --no-install-recommends install zlib1g ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY --from=lading /usr/bin/lading /usr/local/bin/lading
 COPY --from=builder /vector/vector /usr/local/bin/vector
