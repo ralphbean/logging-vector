@@ -401,7 +401,7 @@ spec:
               env:
                 - name: COMMIT_SHA
                   value: $(params.COMMIT_SHA)
-              image: quay.io/konflux-ci/buildah:latest@sha256:7cb5a35b7fe44e397fbf3b834f3bd8dcd9403a7c0a0b51469e6ec75b107d0846
+              image: quay.io/konflux-ci/buildah:latest@sha256:aeaf4c45d9156bcae6e6e065d7e49072bde3a29ec5b937fbc080f3d8ea8a80bb
               name: build
               script: |
                 ca_bundle=/mnt/trusted-ca/ca-bundle.crt
@@ -703,7 +703,7 @@ spec:
                 runAsUser: 0
               workingDir: $(workspaces.source.path)
             - computeResources: {}
-              image: quay.io/konflux-ci/buildah:latest@sha256:7cb5a35b7fe44e397fbf3b834f3bd8dcd9403a7c0a0b51469e6ec75b107d0846
+              image: quay.io/konflux-ci/buildah:latest@sha256:aeaf4c45d9156bcae6e6e065d7e49072bde3a29ec5b937fbc080f3d8ea8a80bb
               name: inject-sbom-and-push
               script: |
                 #!/bin/bash
