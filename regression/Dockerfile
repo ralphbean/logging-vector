@@ -1,7 +1,7 @@
 #
 # LADING
 #
-FROM ghcr.io/datadog/lading@sha256:922f3ec6ca388ef8bc2ba00f796ff5ad742290f259b3b3c9a559edf5a578827d as lading
+FROM ghcr.io/datadog/lading@sha256:479a38d14ec93ec9a86c888da2dcc14e4f2de53a0b0a972be51e78278a18b343 as lading
 
 #
 # VECTOR BUILDER
