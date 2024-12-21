@@ -628,7 +628,7 @@ spec:
                   name: varlibcontainers
                 - mountPath: /shared
                   name: shared
-            - image: registry.access.redhat.com/ubi9/python-39:1-192.1722518946@sha256:0176b477075984d5a502253f951d2502f0763c551275f9585ac515b9f241d73d
+            - image: registry.access.redhat.com/ubi9/python-39:9.5-1734610342@sha256:dde5068ba8fd81eef41a9128ddad2b99e2e02e5869ffe925c605b609a0ad7bbb
               name: merge-syft-sboms
               script: |
                 #!/bin/python3
@@ -675,7 +675,7 @@ spec:
               securityContext:
                 runAsUser: 0
               workingDir: $(workspaces.source.path)
-            - image: registry.access.redhat.com/ubi9/python-39:1-192.1722518946@sha256:0176b477075984d5a502253f951d2502f0763c551275f9585ac515b9f241d73d
+            - image: registry.access.redhat.com/ubi9/python-39:9.5-1734610342@sha256:dde5068ba8fd81eef41a9128ddad2b99e2e02e5869ffe925c605b609a0ad7bbb
               name: create-purl-sbom
               script: |
                 #!/bin/python3
